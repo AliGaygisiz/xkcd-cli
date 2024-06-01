@@ -1,2 +1,5 @@
 xkcd-cli
 *.png
+
+build_release.sh
+release/
