@@ -11,7 +11,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "xkcd-cli"
-	app.Version = "0.2.0"
+	app.Version = "0.3.0"
 	app.HideVersion = false
 	app.Usage = "A CLI Application for XKCD comics"
 	app.CommandNotFound = func(c *cli.Context, command string) {
