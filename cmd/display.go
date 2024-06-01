@@ -13,7 +13,6 @@ import (
 )
 
 func displayBySystem(file *os.File) error {
-	// Display comic using system's default image viewer
 	var cmd *exec.Cmd
 
 	switch runtime.GOOS {
@@ -98,8 +97,11 @@ func DisplayCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "display",
 		Usage: "Display any xkcd comic withoud downloading",
+		OnUsageError: func(c *cli.Context, err error, isSubcommand bool) error {
+			fmt.Fprintf(os.Stderr, "xkcd-cli: %v\n", err)
+			return cli.Exit("See '--help' for usage", 2)
+		},
 		Action: func(c *cli.Context) error {
-			// check if the user has provided any arguments
 			if c.NArg() == 0 {
 				cli.ShowSubcommandHelp(c)
 				return nil
