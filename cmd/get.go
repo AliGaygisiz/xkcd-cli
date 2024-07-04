@@ -96,8 +96,11 @@ func GetCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "get",
 		Usage: "Download any xkcd comic into current directory",
+		OnUsageError: func(c *cli.Context, err error, isSubcommand bool) error {
+			fmt.Fprintf(os.Stderr, "xkcd-cli: %v\n", err)
+			return cli.Exit("See '--help' for usage", 2)
+		},
 		Action: func(c *cli.Context) error {
-			// check if the user has provided any arguments
 			if c.NArg() == 0 {
 				cli.ShowSubcommandHelp(c)
 				return nil
