@@ -22,6 +22,7 @@ func main() {
 		return cli.Exit("See '--help' for usage", 2)
 	}
 	app.Commands = []*cli.Command{
+		cmd.DisplayCommand(),
 		cmd.GetCommand(),
 	}
 
