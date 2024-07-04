@@ -17,6 +17,10 @@ func main() {
 	app.CommandNotFound = func(c *cli.Context, command string) {
 		fmt.Fprintf(os.Stderr, "xkcd-cli: unknown command '%s'. See 'xkcd-cli --help'\n", command)
 	}
+	app.OnUsageError = func(c *cli.Context, err error, isSubcommand bool) error {
+		fmt.Fprintf(os.Stderr, "xkcd-cli: %v\n", err)
+		return cli.Exit("See '--help' for usage", 2)
+	}
 	app.Commands = []*cli.Command{
 		cmd.GetCommand(),
 	}
