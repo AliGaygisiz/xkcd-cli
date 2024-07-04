@@ -2,22 +2,24 @@
 A simple CLI application to download and display [xkcd comics](https://xkcd.com/).
 
 ## Features
-- `get` command to download latest xkcd comic to current directory.
+- `xkcd-cli get latest` to download the latest comic to the current directory.
+- `xkcd-cli get [number]` to download the comic with the given number to current directory.
+- `xkcd-cli get random` to download a random comic to current directory.
 
 ## Planned Features
-- Add the ability to download a specific comic by its ID.
-- Add `display` command to open the comic in systems default image viewer without saving the image.
-- Add `random` option to get a random comic.
+- Add `display` command to open the comic in the system's default image viewer without saving the image.
 
 ## Installation
+
+### Install with `go install`
+```bash
+go install github.com/AliGaygisiz/xkcd-cli@latest
+```
 
 ### Install with `git`
 ```bash
 git clone https://github.com/AliGaygisiz/xkcd-cli.git
 cd xkcd-cli
-```
-If you just want to build and test:
-```bash
 go build .
 ```
 If you want to install the binary to your default Go bin folder:
