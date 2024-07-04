@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,31 +10,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type XKCDComic struct {
-	Month      string `json:"month"`
-	Num        int    `json:"num"`
-	Link       string `json:"link"`
-	Year       string `json:"year"`
-	News       string `json:"news"`
-	SafeTitle  string `json:"safe_title"`
-	Transcript string `json:"transcript"`
-	Alt        string `json:"alt"`
-	Img        string `json:"img"`
-	Title      string `json:"title"`
-	Day        string `json:"day"`
-}
-
 func downloadAndSave(comic XKCDComic) error {
 	fileName := "xkcd_" + strconv.Itoa(comic.Num) + ".png"
+
 	_, err := os.Stat(fileName)
 
 	if !os.IsNotExist(err) {
 		fmt.Println("File already exists")
 		fmt.Println("Do you want to overwrite it? (y/n)")
 		input := ""
+
 		if _, err = fmt.Scanln(&input); err != nil {
 			return fmt.Errorf("error reading input: %v", err)
 		}
+
 		if input != "y" && input != "Y" {
 			os.Exit(0)
 		}
@@ -45,59 +33,109 @@ func downloadAndSave(comic XKCDComic) error {
 	if err != nil {
 		return fmt.Errorf("error downloading comic: %v", err)
 	}
+
 	defer resp.Body.Close()
+
 	out, err := os.Create(fileName)
 	if err != nil {
 		return fmt.Errorf("error creating file: %v", err)
 	}
+
 	defer out.Close()
+
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return fmt.Errorf("error writing file: %v", err)
 	}
+
 	return nil
 }
 
-func getComic() error {
-	url := "https://xkcd.com/info.0.json"
+func getComic(number int) error {
+	var comic XKCDComic
+	var err error
 
-	resp, err := http.Get(url)
-	if err != nil {
-		return fmt.Errorf("error getting comic: %v", err)
+	if number == 0 {
+		comic, err = fetchLatestComic()
+		if err != nil {
+			return err
+		}
 	} else {
-
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
+		comic, err = fetchComicByNumber(number)
 		if err != nil {
-			return fmt.Errorf("error reading response: %v", err)
+			return err
 		}
-
-		var comic XKCDComic
-		err = json.Unmarshal(body, &comic)
-		if err != nil {
-			return fmt.Errorf("error unmarshalling response: %v", err)
-		}
-
-		fmt.Println("========================")
-		fmt.Println("Comic number : ", comic.Num)
-		fmt.Println("Title        : ", comic.Title)
-		fmt.Println("========================")
-		err = downloadAndSave(comic)
-		if err != nil {
-			fmt.Println("Error downloading comic: ", err)
-		}
-		fmt.Println("Comic downloaded successfully")
 	}
+
+	fmt.Println("========================")
+	fmt.Println("Comic number : ", comic.Num)
+	fmt.Println("Title        : ", comic.Title)
+	fmt.Println("========================")
+
+	err = downloadAndSave(comic)
+	if err != nil {
+		fmt.Println("Error downloading comic: ", err)
+	}
+
+	fmt.Println("Comic downloaded successfully")
 	return nil
+}
+
+func getGivenComic(c *cli.Context) error {
+	number, err := strconv.Atoi(c.Args().First())
+	if err != nil {
+		return fmt.Errorf("error parsing comic number: %v", err)
+	}
+	if number < 1 {
+		fmt.Println("Comic number should be greater than 0")
+	}
+	return getComic(number)
 }
 
 func GetCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "get",
-		Usage: "Download the latest xkcd comic into current directory",
+		Usage: "Download any xkcd comic into current directory",
 		Action: func(c *cli.Context) error {
-			return getComic()
+			// check if the user has provided any arguments
+			if c.NArg() == 0 {
+				cli.ShowSubcommandHelp(c)
+				return nil
+			} else {
+				_, err := strconv.Atoi(c.Args().First())
+				if err != nil {
+					fmt.Println("Unknown command. See 'xkcd get help' for available commands")
+					os.Exit(1)
+				}
+				return getGivenComic(c)
+			}
+		},
+		Subcommands: []*cli.Command{
+			{
+				Name:  "latest",
+				Usage: "Download the latest comic",
+				Action: func(c *cli.Context) error {
+					return getComic(0)
+				},
+			},
+			{
+				Name:  "random",
+				Usage: "Download a random comic",
+				Action: func(c *cli.Context) error {
+					number, err := pickRandomComic()
+					if err != nil {
+						return err
+					}
+					return getComic(number)
+				},
+			},
+			{
+				Name:  "[number]",
+				Usage: "Download a specific comic by number",
+				Action: func(c *cli.Context) error {
+					return getGivenComic(c)
+				},
+			},
 		},
 	}
 }
