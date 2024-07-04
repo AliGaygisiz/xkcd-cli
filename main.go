@@ -10,6 +10,8 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "xkcd-cli"
+	app.Version = "0.1.0"
+	app.HideVersion = false
 	app.Usage = "A CLI Application for XKCD comics"
 	app.Commands = []*cli.Command{
 		cmd.GetCommand(),
