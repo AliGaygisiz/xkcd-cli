@@ -108,7 +108,7 @@ func DisplayCommand() *cli.Command {
 			} else {
 				_, err := strconv.Atoi(c.Args().First())
 				if err != nil {
-					fmt.Println("Unknown command. See 'xkcd get help' for available commands")
+					fmt.Println("Unknown command. See 'xkcd display help' for available commands")
 					os.Exit(1)
 				}
 				return displayGivenComic(c)
