@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func displayBySystem(file *os.File) error {
@@ -82,8 +83,8 @@ func DisplayComic(number int) error {
 	return nil
 }
 
-func displayGivenComic(c *cli.Context) error {
-	number, err := strconv.Atoi(c.Args().First())
+func displayGivenComic(ctx context.Context, cmd *cli.Command) error {
+	number, err := strconv.Atoi(cmd.Args().First())
 	if err != nil {
 		return fmt.Errorf("error parsing comic number: %v", err)
 	}
@@ -96,36 +97,36 @@ func displayGivenComic(c *cli.Context) error {
 func DisplayCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "display",
-		Usage: "Display any xkcd comic withoud downloading",
-		OnUsageError: func(c *cli.Context, err error, isSubcommand bool) error {
+		Usage: "Display any xkcd comic without downloading",
+		OnUsageError: func(ctx context.Context, cmd *cli.Command, err error, isSubcommand bool) error {
 			fmt.Fprintf(os.Stderr, "xkcd-cli: %v\n", err)
 			return cli.Exit("See '--help' for usage", 2)
 		},
-		Action: func(c *cli.Context) error {
-			if c.NArg() == 0 {
-				cli.ShowSubcommandHelp(c)
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if !cmd.Args().Present() {
+				cli.ShowSubcommandHelp(cmd)
 				return nil
 			} else {
-				_, err := strconv.Atoi(c.Args().First())
+				_, err := strconv.Atoi(cmd.Args().First())
 				if err != nil {
-					fmt.Println("Unknown command. See 'xkcd display help' for available commands")
-					os.Exit(1)
+					fmt.Fprintf(os.Stderr, "Unknown command. See 'xkcd display help' for available commands\n")
+					return nil
 				}
-				return displayGivenComic(c)
+				return displayGivenComic(ctx, cmd)
 			}
 		},
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			{
 				Name:  "latest",
 				Usage: "Display the latest comic",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, cmd *cli.Command) error {
 					return DisplayComic(0)
 				},
 			},
 			{
 				Name:  "random",
 				Usage: "Display a random comic",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, cmd *cli.Command) error {
 					number, err := pickRandomComic()
 					if err != nil {
 						return err
@@ -136,8 +137,8 @@ func DisplayCommand() *cli.Command {
 			{
 				Name:  "[number]",
 				Usage: "Display a specific comic by number",
-				Action: func(c *cli.Context) error {
-					return displayGivenComic(c)
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					return displayGivenComic(ctx, cmd)
 				},
 			},
 		},
