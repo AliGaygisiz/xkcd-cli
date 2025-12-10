@@ -12,7 +12,7 @@ import (
 func main() {
 	app := &cli.Command{}
 	app.Name = "xkcd-cli"
-	app.Version = "0.3.1"
+	app.Version = "0.4.0"
 	app.HideVersion = false
 	app.Usage = "A CLI Application for XKCD comics"
 	app.CommandNotFound = func(ctx context.Context, cmd *cli.Command, command string) {
